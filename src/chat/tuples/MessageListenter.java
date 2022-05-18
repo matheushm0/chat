@@ -24,7 +24,7 @@ public class MessageListenter extends Thread {
 		    Message msg;
 			
 			try {		
-				msg = (Message) space.take(template, null, Lease.FOREVER);
+				msg = (Message) space.take(template, null, 60 * 1000);
 	            
 //	            if (msg == null) {
 //	                System.out.println("Tempo de espera esgotado. Encerrando...");

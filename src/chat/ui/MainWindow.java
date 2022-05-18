@@ -4,35 +4,59 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
+import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
+
+import chat.tuples.ChatRoom;
+import chat.tuples.Lookup;
+import net.jini.core.lease.Lease;
+import net.jini.space.JavaSpace;
 
 public class MainWindow extends JFrame implements ActionListener {
 	
 	private static final long serialVersionUID = 1L;
 	
+	//CONNECTION
+	private JavaSpace space;
+	
 	//UI
 	private JPanel chatList;
 	private JScrollPane chatScrollPane;
-//	private List<JCheckBox> topicsCheckBox;
+	
+	private ButtonGroup roomButtonGroup;	
+	
 	private JButton confirmButton;
 	private JButton newChatRoomButton;
 	private JButton updateButton;
+	
 	private JTextField usernameField;
 	
 	public MainWindow() {		
 		initComponents();
+		
+		Lookup finder = new Lookup(JavaSpace.class);
+		this.space = (JavaSpace) finder.getService();
+		
+		initSpace();
+		
 		setUpGUI();
 		setUpNewChatRoomButton();
+		setUpUpdateRoomButton();
 	}
 	
 	private void initComponents() {
@@ -44,6 +68,25 @@ public class MainWindow extends JFrame implements ActionListener {
 		this.updateButton = new JButton();
 		this.confirmButton = new JButton();
 		this.newChatRoomButton = new JButton();		
+		
+		this.roomButtonGroup = new ButtonGroup();
+	}
+
+	public void initSpace() {
+		try {
+			System.out.println("Procurando pelo servico JavaSpace...");
+
+			if (space == null) {
+				System.out.println("O servico JavaSpace nao foi encontrado. Encerrando...");
+				System.exit(-1);
+			}
+
+			System.out.println("O servico JavaSpace foi encontrado.");
+			System.out.println(space);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void setUpGUI() {
@@ -91,22 +134,41 @@ public class MainWindow extends JFrame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if (!validateFields()) {
+			return;
+		}
+		
+		this.setVisible(false);
+		
+		String roomName = roomButtonGroup.getSelection().getActionCommand();
 
+		new ChatWindow(usernameField.getText(), roomName, space);
+	}
+	
+	private boolean validateFields() {
+		boolean isValid = true;
+		
 		if (usernameField.getText().isEmpty()) {
 			usernameField.setBorder(new LineBorder(Color.RED, 1));
 
-			return;
+			isValid = false;
 		}
 		else {
 			usernameField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
 		}
 		
-		this.setVisible(false);
-		
-		new ChatWindow(usernameField.getText());
+		if (roomButtonGroup.getSelection().getActionCommand() != null) {
+			//TODO VALIDAÇÃO
+			
+		}
+		else {
+			isValid = false;
+		}
+
+		return isValid;
 	}
 	
-	public void setUpNewChatRoomButton() {
+	private void setUpNewChatRoomButton() {
 		ActionListener al = new ActionListener() 
 		{
 			public void actionPerformed(ActionEvent ae) {
@@ -123,11 +185,27 @@ public class MainWindow extends JFrame implements ActionListener {
 					if (roomName.isEmpty()) {
 						JOptionPane.showMessageDialog(null, "O nome da sala não pode ser vazio", "Erro",
 								JOptionPane.ERROR_MESSAGE);
-					} else {
-						MainWindow.this.setVisible(false);
+					} 
 						
-						//TODO ADICIONAR NOME DA SALA
-						new ChatWindow(usernameField.getText());
+					if (usernameField.getText().isEmpty()) {
+						JOptionPane.showMessageDialog(null, "O nome de usuário não pode ser vazio", "Erro",
+								JOptionPane.ERROR_MESSAGE);
+					} 
+
+					if (!usernameField.getText().isEmpty() && !roomName.isEmpty()) {
+						MainWindow.this.setVisible(false);
+
+						new ChatWindow(usernameField.getText(), roomName, space);
+
+						ChatRoom chatRoom = new ChatRoom();
+						
+						chatRoom.name = roomName;
+						
+						try {
+							space.write(chatRoom, null, Lease.FOREVER);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 						
 						break;
 					}
@@ -137,4 +215,63 @@ public class MainWindow extends JFrame implements ActionListener {
 		
 		newChatRoomButton.addActionListener(al);
 	}	
+	
+	private void setUpUpdateRoomButton() {
+		ActionListener al = new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent ae) {
+				updateAvailableRooms();
+			}
+		};
+		
+		updateButton.addActionListener(al);
+	}
+	
+	private void updateAvailableRooms() {		
+		ChatRoom template = new ChatRoom();
+		ChatRoom chatRoom;
+		
+		try {
+			chatRoom = (ChatRoom) space.take(template, null, 3 * 1000);
+			
+			if (chatRoom != null) {
+				
+				List<AbstractButton> listRadioButton = Collections.list(roomButtonGroup.getElements());
+				
+				boolean exists = false;
+				
+				for (AbstractButton button : listRadioButton) {
+				    System.out.println("Next element : " + ((JRadioButton) button).getText());
+				    
+				    String buttonLabel = ((JRadioButton) button).getText();
+				    
+				    if (buttonLabel.contentEquals(chatRoom.name)) {
+				    	exists = true;
+				    }
+				}
+				
+				if (!exists) {
+					JRadioButton radioButton = new JRadioButton(chatRoom.name);
+					radioButton.setFont(new Font("Arial", Font.PLAIN, 12));
+					radioButton.setBackground(new Color(0,0,0,0));
+					radioButton.setOpaque(false);
+					radioButton.setActionCommand(chatRoom.name);
+					
+					roomButtonGroup.add(radioButton);
+					chatList.add(radioButton);
+					
+					SwingUtilities.updateComponentTreeUI(chatList);	
+				}
+				
+				space.write(chatRoom, null, Lease.FOREVER);
+			} else {
+				JOptionPane.showMessageDialog(null, "Não existe nenhuma sala criada, tente novamente mais tarde", "Aviso",
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

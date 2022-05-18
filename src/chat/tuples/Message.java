@@ -8,6 +8,7 @@ public class Message implements Entry {
 
 	public String username;
 	public String content;
+	public String roomName;
 	
 	public Message() {}
 		
