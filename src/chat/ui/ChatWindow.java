@@ -31,7 +31,8 @@ public class ChatWindow extends JFrame {
 	
 	//CONNECTION
 	private Lookup finder;
-	private JavaSpace space;	
+	private JavaSpace space;
+	private String username;
 	
 	//UI
 	private JPanel usersPanel;
@@ -43,7 +44,7 @@ public class ChatWindow extends JFrame {
 	private JTextField chatTextField;	
 	private JButton chatButton;
 	
-	public ChatWindow() {		
+	public ChatWindow(String username) {		
 		initComponents();
 		setUpGUI();
 		
@@ -51,6 +52,7 @@ public class ChatWindow extends JFrame {
 		
 		finder = new Lookup(JavaSpace.class);
 		space = (JavaSpace) finder.getService();
+		this.username = username;
 		
 		initSpace();
 	}
@@ -67,7 +69,7 @@ public class ChatWindow extends JFrame {
 			System.out.println("O servico JavaSpace foi encontrado.");
 			System.out.println(space);
 			
-			MessageListenter messageListenter = new MessageListenter(space, chatArea, "Teste");
+			MessageListenter messageListenter = new MessageListenter(space, chatArea, username);
 
 			messageListenter.start();
 			
@@ -176,7 +178,7 @@ public class ChatWindow extends JFrame {
 		try {
 			Message msg = new Message();
 			
-			msg.username = "Teste";
+			msg.username = username;
 			msg.content = message;
 			
 			chatArea.append("\n" + msg.username + ": " + msg.content);
@@ -195,9 +197,5 @@ public class ChatWindow extends JFrame {
 		} catch (BadLocationException e) {
 			System.out.println("BadLocationException - updateChatPosition()");
 		}
-	}
-	
-	public static void main(String[] args) {
-		new ChatWindow();
 	}
 }
