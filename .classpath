@@ -2,5 +2,41 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="lib/asm-3.2.jar"/>
+	<classpathentry kind="lib" path="lib/asm-commons-3.2.jar"/>
+	<classpathentry kind="lib" path="lib/browser.jar"/>
+	<classpathentry kind="lib" path="lib/checkconfigurationfile.jar"/>
+	<classpathentry kind="lib" path="lib/checkser.jar"/>
+	<classpathentry kind="lib" path="lib/classdep.jar"/>
+	<classpathentry kind="lib" path="lib/classserver.jar"/>
+	<classpathentry kind="lib" path="lib/computedigest.jar"/>
+	<classpathentry kind="lib" path="lib/computehttpmdcodebase.jar"/>
+	<classpathentry kind="lib" path="lib/destroy.jar"/>
+	<classpathentry kind="lib" path="lib/envcheck.jar"/>
+	<classpathentry kind="lib" path="lib/extra.jar"/>
+	<classpathentry kind="lib" path="lib/fiddler.jar"/>
+	<classpathentry kind="lib" path="lib/group.jar"/>
+	<classpathentry kind="lib" path="lib/jarwrapper.jar"/>
+	<classpathentry kind="lib" path="lib/jini-core.jar"/>
+	<classpathentry kind="lib" path="lib/jini-ext.jar"/>
+	<classpathentry kind="lib" path="lib/jsk-debug-policy.jar"/>
+	<classpathentry kind="lib" path="lib/jsk-lib.jar"/>
+	<classpathentry kind="lib" path="lib/jsk-platform.jar"/>
+	<classpathentry kind="lib" path="lib/jsk-resources.jar"/>
+	<classpathentry kind="lib" path="lib/mahalo.jar"/>
+	<classpathentry kind="lib" path="lib/mercury.jar"/>
+	<classpathentry kind="lib" path="lib/norm.jar"/>
+	<classpathentry kind="lib" path="lib/outrigger.jar"/>
+	<classpathentry kind="lib" path="lib/outrigger-snaplogstore.jar"/>
+	<classpathentry kind="lib" path="lib/phoenix.jar"/>
+	<classpathentry kind="lib" path="lib/phoenix-group.jar"/>
+	<classpathentry kind="lib" path="lib/phoenix-init.jar"/>
+	<classpathentry kind="lib" path="lib/preferredlistgen.jar"/>
+	<classpathentry kind="lib" path="lib/reggie.jar"/>
+	<classpathentry kind="lib" path="lib/serviceui.jar"/>
+	<classpathentry kind="lib" path="lib/sharedvm.jar"/>
+	<classpathentry kind="lib" path="lib/start.jar"/>
+	<classpathentry kind="lib" path="lib/sun-util.jar"/>
+	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

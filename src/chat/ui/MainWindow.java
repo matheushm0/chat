@@ -25,7 +25,7 @@ public class MainWindow extends JFrame {
 //	private JLabel errorLabel;
 	private JTextField usernameField;
 	
-	public MainWindow() {
+	public MainWindow() {		
 		initComponents();
 		setUpGUI();
 	}

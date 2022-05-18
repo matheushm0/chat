@@ -1,7 +1,6 @@
 package chat.ui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -18,11 +17,23 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 
+import chat.tuples.Lookup;
+import chat.tuples.Message;
+import chat.tuples.MessageListenter;
+import net.jini.core.lease.Lease;
+import net.jini.space.JavaSpace;
+
 public class ChatWindow extends JFrame {
+	private static final long serialVersionUID = 1L;
 	
+	//CONNECTION
+	private Lookup finder;
+	private JavaSpace space;	
+	
+	//UI
 	private JPanel usersPanel;
 	private JScrollPane usersScrollPane;
 	
@@ -32,11 +43,37 @@ public class ChatWindow extends JFrame {
 	private JTextField chatTextField;	
 	private JButton chatButton;
 	
-	public ChatWindow() {
+	public ChatWindow() {		
 		initComponents();
 		setUpGUI();
 		
-		setUpChat();
+		setUpChat();	
+		
+		finder = new Lookup(JavaSpace.class);
+		space = (JavaSpace) finder.getService();
+		
+		initSpace();
+	}
+	
+	public void initSpace() {
+		try {
+			System.out.println("Procurando pelo servico JavaSpace...");
+
+			if (space == null) {
+				System.out.println("O servico JavaSpace nao foi encontrado. Encerrando...");
+				System.exit(-1);
+			}
+
+			System.out.println("O servico JavaSpace foi encontrado.");
+			System.out.println(space);
+			
+			MessageListenter messageListenter = new MessageListenter(space, chatArea, "Teste");
+
+			messageListenter.start();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void initComponents() {
@@ -134,10 +171,32 @@ public class ChatWindow extends JFrame {
 	public void sendChatMessage() {
 		String message = chatTextField.getText();
 		
-		chatArea.append("\n" + message);
 		chatTextField.setText("");
+		
+		try {
+			Message msg = new Message();
+			
+			msg.username = "Teste";
+			msg.content = message;
+			
+			chatArea.append("\n" + msg.username + ": " + msg.content);
+			
+			space.write(msg, null, Lease.FOREVER);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		updateChatPosition();
 	}
-
+	
+	private void updateChatPosition() {
+		try {
+			chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
+		} catch (BadLocationException e) {
+			System.out.println("BadLocationException - updateChatPosition()");
+		}
+	}
+	
 	public static void main(String[] args) {
 		new ChatWindow();
 	}
