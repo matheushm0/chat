@@ -22,6 +22,7 @@ import javax.swing.text.DefaultCaret;
 
 import chat.tuples.Message;
 import chat.tuples.MessageListenter;
+import net.jini.core.lease.Lease;
 import net.jini.space.JavaSpace;
 
 public class ChatWindow extends JFrame {
@@ -161,7 +162,10 @@ public class ChatWindow extends JFrame {
 			
 			chatArea.append("\n" + msg.username + ": " + msg.content);
 			
-			space.write(msg, null, 60 * 1000);
+			space.write(msg, null, Lease.FOREVER);
+			
+			Message template = new Message();
+			space.take(template, null, Lease.FOREVER);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -175,10 +179,12 @@ public class ChatWindow extends JFrame {
 		} catch (BadLocationException e) {
 			System.out.println("BadLocationException - updateChatPosition()");
 		}
+		
+		chatTextField.grabFocus();
 	}
 	
 	public void startThread() {
-		MessageListenter messageListenter = new MessageListenter(space, chatArea, username);
+		MessageListenter messageListenter = new MessageListenter(space, chatArea, username, roomName);
 
 		messageListenter.start();
 	}
