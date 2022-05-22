@@ -4,10 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -231,44 +230,40 @@ public class MainWindow extends JFrame implements ActionListener {
 		ChatRoom template = new ChatRoom();
 		ChatRoom chatRoom;
 		
+		List<ChatRoom> rooms = new ArrayList<ChatRoom>();
+		roomButtonGroup = new ButtonGroup();
+		chatList.removeAll();
+		
 		try {
-			chatRoom = (ChatRoom) space.take(template, null, 3 * 1000);
-			
-			if (chatRoom != null) {
+			while (true) {
+				chatRoom = (ChatRoom) space.take(template, null, 3 * 1000);
 				
-				List<AbstractButton> listRadioButton = Collections.list(roomButtonGroup.getElements());
-				
-				boolean exists = false;
-				
-				for (AbstractButton button : listRadioButton) {
-				    System.out.println("Next element : " + ((JRadioButton) button).getText());
-				    
-				    String buttonLabel = ((JRadioButton) button).getText();
-				    
-				    if (buttonLabel.contentEquals(chatRoom.name)) {
-				    	exists = true;
-				    }
-				}
-				
-				if (!exists) {
-					JRadioButton radioButton = new JRadioButton(chatRoom.name);
-					radioButton.setFont(new Font("Arial", Font.PLAIN, 12));
-					radioButton.setBackground(new Color(0,0,0,0));
-					radioButton.setOpaque(false);
-					radioButton.setActionCommand(chatRoom.name);
-					
-					roomButtonGroup.add(radioButton);
-					chatList.add(radioButton);
-					
-					SwingUtilities.updateComponentTreeUI(chatList);	
-				}
-				
-				space.write(chatRoom, null, Lease.FOREVER);
-			} else {
-				JOptionPane.showMessageDialog(null, "Não existe nenhuma sala criada, tente novamente mais tarde", "Aviso",
-						JOptionPane.INFORMATION_MESSAGE);
+				if (chatRoom != null) {
+					rooms.add(chatRoom);
+				} else {					
+					break;
+				}	
 			}
 			
+			if (rooms.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Não existe nenhuma sala criada, tente novamente mais tarde",
+						"Aviso", JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				for (ChatRoom room : rooms) {				
+					JRadioButton radioButton = new JRadioButton(room.name);
+					radioButton.setFont(new Font("Arial", Font.PLAIN, 12));
+					radioButton.setBackground(new Color(0, 0, 0, 0));
+					radioButton.setOpaque(false);
+					radioButton.setActionCommand(room.name);
+
+					roomButtonGroup.add(radioButton);
+					chatList.add(radioButton);
+
+					SwingUtilities.updateComponentTreeUI(chatList);
+					
+					space.write(room, null, Lease.FOREVER);
+				}
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
