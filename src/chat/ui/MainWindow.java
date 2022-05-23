@@ -137,6 +137,7 @@ public class MainWindow extends JFrame implements ActionListener {
 			return;
 		}
 		
+		this.removeAll();
 		this.setVisible(false);
 		
 		String roomName = roomButtonGroup.getSelection().getActionCommand();
@@ -192,6 +193,7 @@ public class MainWindow extends JFrame implements ActionListener {
 					} 
 
 					if (!usernameField.getText().isEmpty() && !roomName.isEmpty()) {
+						MainWindow.this.removeAll();
 						MainWindow.this.setVisible(false);
 
 						new ChatWindow(usernameField.getText(), roomName, space);

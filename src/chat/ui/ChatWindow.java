@@ -34,6 +34,8 @@ public class ChatWindow extends JFrame {
 	private String roomName;
 	
 	//UI
+	private JButton quitRoomButton;
+	
 	private JPanel connectedUsersPanel;
 	private JScrollPane usersScrollPane;
 	
@@ -42,7 +44,7 @@ public class ChatWindow extends JFrame {
 	
 	private JTextField chatTextField;	
 	private JButton chatButton;
-	
+		
 	public ChatWindow(String username, String roomName, JavaSpace space) {		
 		this.username = username;
 		this.roomName = roomName;	
@@ -53,10 +55,14 @@ public class ChatWindow extends JFrame {
 		setUpGUI();
 		setUpChat();	
 		
-		startThread();		
+		startThread();	
+		
+		setUpQuitRoomButton();
 	}
 	
 	private void initComponents() {
+		this.quitRoomButton = new JButton();
+		
 		this.connectedUsersPanel = new JPanel();
 		this.usersScrollPane = new JScrollPane();
 		
@@ -64,29 +70,32 @@ public class ChatWindow extends JFrame {
 		this.chatScroll = new JScrollPane();
 		
 		this.chatButton = new JButton();
-		this.chatTextField = new JTextField();
+		this.chatTextField = new JTextField();		
 	}
 	
 	private void setUpGUI() {
 		this.setResizable(false);
-		this.setSize(800, 500);
+		this.setSize(800, 530);
 		this.setTitle("Sala " + roomName);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setContentPane(new JLabel());	
 		
+		quitRoomButton.setText("Sair");
+		quitRoomButton.setBounds(15, 18, 100, 25);
+		
 		JLabel usersLabel = new JLabel("Usuarios Logados");
 		usersLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		usersLabel.setBounds(65, 0, 200, 60);
+		usersLabel.setBounds(65, 30, 200, 60);
 		
 		connectedUsersPanel.setBackground(Color.WHITE);
 		connectedUsersPanel.setLayout(new BoxLayout(connectedUsersPanel, BoxLayout.Y_AXIS));
 		
 		usersScrollPane.setViewportView(connectedUsersPanel);
-		usersScrollPane.setBounds(15, 40, 230, 400);
+		usersScrollPane.setBounds(15, 70, 230, 400);
 		
 		JLabel chatLabel = new JLabel("Chat");
 		chatLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		chatLabel.setBounds(500, 0, 200, 60);
+		chatLabel.setBounds(500, 30, 200, 60);
 		
 		chatArea.setEditable(false);
 		chatArea.setColumns(20);
@@ -100,16 +109,18 @@ public class ChatWindow extends JFrame {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		chatScroll.setViewportView(chatArea);
-		chatScroll.setBounds(265, 40, 500, 350);
+		chatScroll.setBounds(265, 70, 500, 350);
 		
-		chatTextField.setBounds(265, 400, 410, 40);
+		chatTextField.setBounds(265, 430, 410, 40);
 
 		chatButton.setText("Enviar");
-		chatButton.setBounds(685, 400, 80, 39);
+		chatButton.setBounds(685, 430, 80, 39);
 		
 		chatArea.append("\n----- Bem-vindo a sala de chat " + roomName + " -----" 
 				+ "\n----- Para enviar mensagens privadas digite '/p nomeDoUsuario mensagem' -----");
 		
+		
+		this.add(quitRoomButton);
 		this.add(usersLabel);
 		this.add(usersScrollPane);
 		this.add(chatLabel);
@@ -198,5 +209,23 @@ public class ChatWindow extends JFrame {
 		MessageListenter messageListenter = new MessageListenter(space, chatArea, username, roomName);
 
 		messageListenter.start();
+	}
+	
+	private void setUpQuitRoomButton() {
+		ActionListener al = new ActionListener() 
+		{
+			public void actionPerformed(ActionEvent ae) {
+				swapWindows();
+			}
+		};
+		
+		quitRoomButton.addActionListener(al);
+	}
+	
+	private void swapWindows() {
+		this.removeAll();
+		this.setVisible(false);
+		
+		new MainWindow();
 	}
 }
