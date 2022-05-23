@@ -23,7 +23,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 
 import chat.tuples.Message;
-import chat.tuples.MessageListenter;
+import chat.tuples.MessageListener;
 import chat.tuples.User;
 import net.jini.core.lease.Lease;
 import net.jini.space.JavaSpace;
@@ -216,9 +216,8 @@ public class ChatWindow extends JFrame {
 	}
 	
 	public void startThread() {
-		MessageListenter messageListenter = new MessageListenter(space, chatArea, username, roomName);
-
-		messageListenter.start();
+		MessageListener messageListener = new MessageListener(space, chatArea, username, roomName);
+		messageListener.start();
 	}
 	
 	private void setUpQuitRoomButton() {
@@ -246,15 +245,8 @@ public class ChatWindow extends JFrame {
 		template.name = username;
 		template.roomName = roomName;
 		
-		User user;
-		
 		try {
-			user = (User) space.take(template, null, 1000);
-			
-			if (user != null) {
-				
-			}
-			
+			space.take(template, null, 1000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		

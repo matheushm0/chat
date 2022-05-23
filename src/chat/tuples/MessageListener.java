@@ -5,7 +5,7 @@ import javax.swing.JTextArea;
 import net.jini.core.lease.Lease;
 import net.jini.space.JavaSpace;
 
-public class MessageListenter extends Thread {
+public class MessageListener extends Thread {
 
 	JavaSpace space;
 	
@@ -14,7 +14,7 @@ public class MessageListenter extends Thread {
 	String username;
 	String roomName;
 
-	public MessageListenter(JavaSpace space, JTextArea chatArea, String username, String roomName) {
+	public MessageListener(JavaSpace space, JTextArea chatArea, String username, String roomName) {
 		this.space = space;
 		this.chatArea = chatArea;
 		this.username = username;
