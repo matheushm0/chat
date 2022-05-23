@@ -79,7 +79,7 @@ public class ChatWindow extends JFrame {
 	private void setUpGUI() {
 		this.setResizable(false);
 		this.setSize(800, 530);
-		this.setTitle("Sala " + roomName);
+		this.setTitle("Sala " + roomName + " - Usuario: " + username);
 		this.setContentPane(new JLabel());	
 
 		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -129,6 +129,21 @@ public class ChatWindow extends JFrame {
 		chatArea.append("\n----- Bem-vindo a sala de chat " + roomName + " -----" 
 				+ "\n----- Para enviar mensagens privadas digite '/p nomeDoUsuario mensagem' -----");
 		
+		try {
+			Message msg = new Message();
+			msg.username = username;
+			msg.roomName = roomName;
+			msg.type = "connected";
+			msg.content = "\n----- " + username + " se conectou a sala! -----";
+			
+			space.write(msg, null, Lease.FOREVER);
+			
+			Message msgTemplate = new Message();
+			space.take(msgTemplate, null, Lease.FOREVER);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		
 		this.add(quitRoomButton);
 		this.add(usersLabel);
@@ -172,6 +187,7 @@ public class ChatWindow extends JFrame {
 			
 			msg.username = username;
 			msg.roomName = roomName;
+			msg.type = "chat";
 			
 			if (message.startsWith("/p")) {
 				msg.isPrivate = true;
@@ -182,6 +198,8 @@ public class ChatWindow extends JFrame {
 				try {
 					msg.pmReceiver = sp[1];
 					msg.content = sp[2];
+					
+					chatArea.append("\n** Mensagem Privada enviada para " + sp[1] + ": " + sp[2] + " **");
 				} catch (Exception e) {
 					msg.content = message;
 					msg.isPrivate = false;
@@ -190,9 +208,9 @@ public class ChatWindow extends JFrame {
 			else {
 				msg.content = message;
 				msg.isPrivate = false;	
+				
+				chatArea.append("\n" + username + ": " + message);
 			}
-						
-			chatArea.append("\n" + username + ": " + message);
 			
 			space.write(msg, null, Lease.FOREVER);
 			
@@ -245,8 +263,25 @@ public class ChatWindow extends JFrame {
 		template.name = username;
 		template.roomName = roomName;
 		
+		User user;
+		
 		try {
-			space.take(template, null, 1000);
+			user = (User) space.take(template, null, 1000);
+			
+			if (user != null) {
+			
+				Message msg = new Message();
+				msg.username = username;
+				msg.roomName = roomName;
+				msg.type = "disconnected";
+				msg.content = "\n----- " + username + " se desconectou da sala! -----";
+				
+				space.write(msg, null, Lease.FOREVER);
+				
+				Message msgTemplate = new Message();
+				space.take(msgTemplate, null, Lease.FOREVER);
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		

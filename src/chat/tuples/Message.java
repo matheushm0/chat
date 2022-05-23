@@ -14,5 +14,7 @@ public class Message implements Entry {
 	public String pmReceiver;
 	public Boolean isPrivate;
 	
+	public String type;
+	
 	public Message() {}		
 }

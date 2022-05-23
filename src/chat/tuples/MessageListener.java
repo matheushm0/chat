@@ -32,16 +32,22 @@ public class MessageListener extends Thread {
 
 				if (msg != null) {
 					if (msg.roomName.equalsIgnoreCase(roomName)) {
-
-						if (!msg.username.equalsIgnoreCase(username) && !msg.isPrivate) {
-							chatArea.append("\n" + msg.username + ": " + msg.content);
+						
+						if (msg.type.contentEquals("connected") || msg.type.contentEquals("disconnected")) {
+							chatArea.append(msg.content);
 							chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
 						}
-
-						if (!msg.username.equalsIgnoreCase(username) && msg.isPrivate) {
-							if (msg.pmReceiver.equalsIgnoreCase(username)) {
-								chatArea.append("\n** Mensagem Privada de " + msg.pmSender + ": " + msg.content + " **");
+						else {
+							if (!msg.username.equalsIgnoreCase(username) && !msg.isPrivate) {
+								chatArea.append("\n" + msg.username + ": " + msg.content);
 								chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
+							}
+
+							if (!msg.username.equalsIgnoreCase(username) && msg.isPrivate) {
+								if (msg.pmReceiver.equalsIgnoreCase(username)) {
+									chatArea.append("\n** Mensagem Privada de " + msg.pmSender + ": " + msg.content + " **");
+									chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
+								}
 							}
 						}
 					}
