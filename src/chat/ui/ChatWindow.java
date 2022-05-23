@@ -1,6 +1,5 @@
 package chat.ui;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -10,12 +9,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -38,9 +37,6 @@ public class ChatWindow extends JFrame {
 	
 	//UI
 	private JButton quitRoomButton;
-	
-	private JPanel connectedUsersPanel;
-	private JScrollPane usersScrollPane;
 	
 	private JTextArea chatArea;
 	private JScrollPane chatScroll;
@@ -66,9 +62,6 @@ public class ChatWindow extends JFrame {
 	private void initComponents() {
 		this.quitRoomButton = new JButton();
 		
-		this.connectedUsersPanel = new JPanel();
-		this.usersScrollPane = new JScrollPane();
-		
 		this.chatArea = new JTextArea();
 		this.chatScroll = new JScrollPane();
 		
@@ -78,7 +71,7 @@ public class ChatWindow extends JFrame {
 	
 	private void setUpGUI() {
 		this.setResizable(false);
-		this.setSize(800, 530);
+		this.setSize(550, 530);
 		this.setTitle("Sala " + roomName + " - Usuario: " + username);
 		this.setContentPane(new JLabel());	
 
@@ -92,20 +85,10 @@ public class ChatWindow extends JFrame {
 		
 		quitRoomButton.setText("Sair");
 		quitRoomButton.setBounds(15, 18, 100, 25);
-		
-		JLabel usersLabel = new JLabel("Usuarios Logados");
-		usersLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		usersLabel.setBounds(65, 30, 200, 60);
-		
-		connectedUsersPanel.setBackground(Color.WHITE);
-		connectedUsersPanel.setLayout(new BoxLayout(connectedUsersPanel, BoxLayout.Y_AXIS));
-		
-		usersScrollPane.setViewportView(connectedUsersPanel);
-		usersScrollPane.setBounds(15, 70, 230, 400);
-		
-		JLabel chatLabel = new JLabel("Chat");
+
+		JLabel chatLabel = new JLabel("SALA " + roomName.toUpperCase());
 		chatLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		chatLabel.setBounds(500, 30, 200, 60);
+		chatLabel.setBounds(225, 1, 200, 60);
 		
 		chatArea.setEditable(false);
 		chatArea.setColumns(20);
@@ -119,15 +102,16 @@ public class ChatWindow extends JFrame {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		chatScroll.setViewportView(chatArea);
-		chatScroll.setBounds(265, 70, 500, 350);
+		chatScroll.setBounds(15, 70, 500, 350);
 		
-		chatTextField.setBounds(265, 430, 410, 40);
+		chatTextField.setBounds(15, 430, 410, 40);
 
 		chatButton.setText("Enviar");
-		chatButton.setBounds(685, 430, 80, 39);
+		chatButton.setBounds(435, 430, 80, 39);
 		
 		chatArea.append("\n----- Bem-vindo a sala de chat " + roomName + " -----" 
-				+ "\n----- Para enviar mensagens privadas digite '/p nomeDoUsuario mensagem' -----");
+				+ "\n----- Para enviar mensagens privadas digite '/p nomeDoUsuario mensagem' -----"
+				+ "\n----- Para ver a lista de usuários conectados digite '/usuarios' -----\n");
 		
 		try {
 			Message msg = new Message();
@@ -146,8 +130,6 @@ public class ChatWindow extends JFrame {
 		
 		
 		this.add(quitRoomButton);
-		this.add(usersLabel);
-		this.add(usersScrollPane);
 		this.add(chatLabel);
 		this.add(chatScroll);
 		this.add(chatTextField);
@@ -183,39 +165,46 @@ public class ChatWindow extends JFrame {
 		chatTextField.setText("");
 		
 		try {
-			Message msg = new Message();
-			
-			msg.username = username;
-			msg.roomName = roomName;
-			msg.type = "chat";
-			
-			if (message.startsWith("/p")) {
-				msg.isPrivate = true;
-				msg.pmSender = username;
-				
-				String[] sp = message.split(" ", 3);
-				
-				try {
-					msg.pmReceiver = sp[1];
-					msg.content = sp[2];
-					
-					chatArea.append("\n** Mensagem Privada enviada para " + sp[1] + ": " + sp[2] + " **");
-				} catch (Exception e) {
-					msg.content = message;
-					msg.isPrivate = false;
-				}
+			if (message.startsWith("/usuarios")) {
+				chatArea.append("\n" + username + ": " + message);
+
+				retrieveUsersList();				
 			}
 			else {
-				msg.content = message;
-				msg.isPrivate = false;	
+				Message msg = new Message();
 				
-				chatArea.append("\n" + username + ": " + message);
+				msg.username = username;
+				msg.roomName = roomName;
+				msg.type = "chat";
+				
+				if (message.startsWith("/p")) {
+					msg.isPrivate = true;
+					msg.pmSender = username;
+					
+					String[] sp = message.split(" ", 3);
+					
+					try {
+						msg.pmReceiver = sp[1];
+						msg.content = sp[2];
+						
+						chatArea.append("\n** Mensagem Privada enviada para " + sp[1] + ": " + sp[2] + " **");
+					} catch (Exception e) {
+						msg.content = message;
+						msg.isPrivate = false;
+					}
+				}
+				else {
+					msg.content = message;
+					msg.isPrivate = false;	
+					
+					chatArea.append("\n" + username + ": " + message);
+				}
+				
+				space.write(msg, null, Lease.FOREVER);
+				
+				Message template = new Message();
+				space.take(template, null, Lease.FOREVER);
 			}
-			
-			space.write(msg, null, Lease.FOREVER);
-			
-			Message template = new Message();
-			space.take(template, null, Lease.FOREVER);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -285,5 +274,46 @@ public class ChatWindow extends JFrame {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
+	}
+	
+	private void retrieveUsersList() {		
+		User template = new User();
+		template.roomName = roomName;
+		
+		User user;
+		
+		List<User> users = new ArrayList<User>();
+		
+		try {
+			while (true) {
+				user = (User) space.take(template, null, 1000);
+				
+				if (user != null) {
+					users.add(user);
+				} else {					
+					break;
+				}	
+			}
+			
+			if (!users.isEmpty()) {
+				StringBuilder sb = new StringBuilder();
+				
+				sb.append("\n\n----- Usuarios Conectados -----\n");
+				
+				
+				for (User connectedUser : users) {	
+					sb.append("\n" + connectedUser.name);
+					
+					space.write(connectedUser, null, Lease.FOREVER);
+				}
+				
+				sb.append("\n\n-----------------------------------------\n");
+				
+				chatArea.append(sb.toString());
+			} 
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
