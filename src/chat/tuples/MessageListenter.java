@@ -8,7 +8,9 @@ import net.jini.space.JavaSpace;
 public class MessageListenter extends Thread {
 
 	JavaSpace space;
+	
 	JTextArea chatArea;
+	
 	String username;
 	String roomName;
 
@@ -36,7 +38,7 @@ public class MessageListenter extends Thread {
 							chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
 						}
 
-						if (msg.isPrivate) {
+						if (!msg.username.equalsIgnoreCase(username) && msg.isPrivate) {
 							if (msg.pmReceiver.equalsIgnoreCase(username)) {
 								chatArea.append("\n** Mensagem Privada de " + msg.pmSender + ": " + msg.content + " **");
 								chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));

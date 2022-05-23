@@ -25,6 +25,7 @@ import javax.swing.border.LineBorder;
 
 import chat.tuples.ChatRoom;
 import chat.tuples.Lookup;
+import chat.tuples.User;
 import net.jini.core.lease.Lease;
 import net.jini.space.JavaSpace;
 
@@ -138,17 +139,32 @@ public class MainWindow extends JFrame implements ActionListener {
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent ae) {
 		if (!validateFields()) {
 			return;
 		}
-		
-		this.removeAll();
-		this.setVisible(false);
-		
-		String roomName = roomButtonGroup.getSelection().getActionCommand();
 
-		new ChatWindow(usernameField.getText(), roomName, space);
+		String roomName = roomButtonGroup.getSelection().getActionCommand();
+		String username = usernameField.getText();
+		
+		if (!verifyIfUserExists(username, roomName)) {
+			this.removeAll();
+			this.setVisible(false);
+			new ChatWindow(username, roomName, space);	
+			
+			User user = new User();
+			user.name = username;
+			user.roomName = roomName;
+			
+			try {
+				space.write(user, null, Lease.FOREVER);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			JOptionPane.showMessageDialog(null, "Já existe um usuário com o nome: " + username + " na sala " + roomName,
+					"Erro", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 	
 	private boolean validateFields() {
@@ -199,6 +215,7 @@ public class MainWindow extends JFrame implements ActionListener {
 				
 				while (true) {
 					roomName = JOptionPane.showInputDialog(getParent(), "Digite o nome da sala");
+					String username = usernameField.getText();
 
 					if (roomName == null) {
 						break;
@@ -209,25 +226,29 @@ public class MainWindow extends JFrame implements ActionListener {
 								JOptionPane.ERROR_MESSAGE);
 					} 
 						
-					if (usernameField.getText().isEmpty()) {
+					if (username.isEmpty()) {
 						JOptionPane.showMessageDialog(null, "O nome de usuário não pode ser vazio", "Erro",
 								JOptionPane.ERROR_MESSAGE);
 					} 
 
-					if (!usernameField.getText().isEmpty() && !roomName.isEmpty()) {
+					if (!username.isEmpty() && !roomName.isEmpty()) {
 						
 						if (!verifyIfRoomExists(roomName)) {
 							MainWindow.this.removeAll();
 							MainWindow.this.setVisible(false);
 
-							new ChatWindow(usernameField.getText(), roomName, space);
+							new ChatWindow(username, roomName, space);
 
 							ChatRoom chatRoom = new ChatRoom();
-							
 							chatRoom.name = roomName;
+							
+							User user = new User();
+							user.name = username;
+							user.roomName = roomName;
 							
 							try {
 								space.write(chatRoom, null, Lease.FOREVER);
+								space.write(user, null, Lease.FOREVER);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -244,26 +265,6 @@ public class MainWindow extends JFrame implements ActionListener {
 		
 		newChatRoomButton.addActionListener(al);
 	}	
-	
-	private boolean verifyIfRoomExists(String roomName) {
-		ChatRoom template = new ChatRoom();
-		template.name = roomName;
-		
-		ChatRoom chatRoom;
-		
-		try {
-			chatRoom = (ChatRoom) space.read(template, null, 1000);
-			
-			if (chatRoom != null) {
-				return true;
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return false;
-	}
 	
 	private void setUpUpdateRoomButton() {
 		ActionListener al = new ActionListener() 
@@ -318,5 +319,46 @@ public class MainWindow extends JFrame implements ActionListener {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private boolean verifyIfRoomExists(String roomName) {
+		ChatRoom template = new ChatRoom();
+		template.name = roomName;
+		
+		ChatRoom chatRoom;
+		
+		try {
+			chatRoom = (ChatRoom) space.read(template, null, 1000);
+			
+			if (chatRoom != null) {
+				return true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
+	
+	private boolean verifyIfUserExists(String username, String roomName) {
+		User template = new User();
+		template.name = username;
+		template.roomName = roomName;
+		
+		User user;
+		
+		try {
+			user = (User) space.read(template, null, 1000);
+			
+			if (user != null) {
+				return true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 }

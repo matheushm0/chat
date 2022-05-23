@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -22,6 +24,7 @@ import javax.swing.text.DefaultCaret;
 
 import chat.tuples.Message;
 import chat.tuples.MessageListenter;
+import chat.tuples.User;
 import net.jini.core.lease.Lease;
 import net.jini.space.JavaSpace;
 
@@ -57,7 +60,7 @@ public class ChatWindow extends JFrame {
 		
 		startThread();	
 		
-		setUpQuitRoomButton();
+		setUpQuitRoomButton();		
 	}
 	
 	private void initComponents() {
@@ -77,8 +80,15 @@ public class ChatWindow extends JFrame {
 		this.setResizable(false);
 		this.setSize(800, 530);
 		this.setTitle("Sala " + roomName);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setContentPane(new JLabel());	
+
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				removeUserFromRoom(username, roomName);
+				ChatWindow.this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			}
+		});
 		
 		quitRoomButton.setText("Sair");
 		quitRoomButton.setBounds(15, 18, 100, 25);
@@ -227,5 +237,26 @@ public class ChatWindow extends JFrame {
 		this.setVisible(false);
 		
 		new MainWindow();
+		
+		removeUserFromRoom(username, roomName);
+	}
+	
+	private void removeUserFromRoom(String username, String roomName) {
+		User template = new User();
+		template.name = username;
+		template.roomName = roomName;
+		
+		User user;
+		
+		try {
+			user = (User) space.take(template, null, 1000);
+			
+			if (user != null) {
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
 	}
 }
