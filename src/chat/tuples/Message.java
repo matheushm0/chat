@@ -10,6 +10,9 @@ public class Message implements Entry {
 	public String content;
 	public String roomName;
 	
-	public Message() {}
-		
+	public String pmSender;
+	public String pmReceiver;
+	public Boolean isPrivate;
+	
+	public Message() {}		
 }

@@ -22,23 +22,34 @@ public class MessageListenter extends Thread {
 	@Override
 	public void run() {
 		while (true) {
-		    Message template = new Message();
-		    Message msg;
-			
-			try {		
+			Message template = new Message();
+			Message msg;
+
+			try {
 				msg = (Message) space.read(template, null, Lease.FOREVER);
-	                        
-	            if (msg != null) {    
-	            	if (!msg.username.equalsIgnoreCase(username) 
-	            			&& msg.roomName.equalsIgnoreCase(roomName)) {
-	                	chatArea.append("\n" + msg.username + ": " + msg.content);
-		            	chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
-	            	}
-	            }
-	            
+
+				if (msg != null) {
+					if (msg.roomName.equalsIgnoreCase(roomName)) {
+
+						if (!msg.username.equalsIgnoreCase(username) && !msg.isPrivate) {
+							chatArea.append("\n" + msg.username + ": " + msg.content);
+							chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
+						}
+
+						if (msg.isPrivate) {
+							if (msg.pmReceiver.equalsIgnoreCase(username)) {
+								chatArea.append("\n** Mensagem Privada de " + msg.pmSender + ": " + msg.content + " **");
+								chatArea.setCaretPosition(chatArea.getLineStartOffset(chatArea.getLineCount() - 1));
+							}
+						}
+					}
+
+					Thread.sleep(10);
+				}
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}		
+		}
 	}
 }

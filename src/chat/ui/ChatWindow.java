@@ -34,7 +34,7 @@ public class ChatWindow extends JFrame {
 	private String roomName;
 	
 	//UI
-	private JPanel usersPanel;
+	private JPanel connectedUsersPanel;
 	private JScrollPane usersScrollPane;
 	
 	private JTextArea chatArea;
@@ -53,11 +53,11 @@ public class ChatWindow extends JFrame {
 		setUpGUI();
 		setUpChat();	
 		
-		startThread();
+		startThread();		
 	}
 	
 	private void initComponents() {
-		this.usersPanel = new JPanel();
+		this.connectedUsersPanel = new JPanel();
 		this.usersScrollPane = new JScrollPane();
 		
 		this.chatArea = new JTextArea();
@@ -78,21 +78,11 @@ public class ChatWindow extends JFrame {
 		usersLabel.setFont(new Font("Arial", Font.BOLD, 14));
 		usersLabel.setBounds(65, 0, 200, 60);
 		
-		usersPanel.setBackground(Color.WHITE);
-		usersPanel.setLayout(new BoxLayout(usersPanel, BoxLayout.Y_AXIS));
+		connectedUsersPanel.setBackground(Color.WHITE);
+		connectedUsersPanel.setLayout(new BoxLayout(connectedUsersPanel, BoxLayout.Y_AXIS));
 		
-		usersScrollPane.setViewportView(usersPanel);
+		usersScrollPane.setViewportView(connectedUsersPanel);
 		usersScrollPane.setBounds(15, 40, 230, 400);
-		
-//		for (String subscribedTopic : subscribedTopics) {
-//			JLabel topic = new JLabel(subscribedTopic);
-//			topic.setFont(new Font("Arial", Font.PLAIN, 12));	
-//			topic.setAlignmentX(Component.CENTER_ALIGNMENT);
-//			topic.setBorder(new EmptyBorder(5,0,0,0));
-//
-//			
-//			topicPanel.add(topic);
-//		}
 		
 		JLabel chatLabel = new JLabel("Chat");
 		chatLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -116,6 +106,9 @@ public class ChatWindow extends JFrame {
 
 		chatButton.setText("Enviar");
 		chatButton.setBounds(685, 400, 80, 39);
+		
+		chatArea.append("\n----- Bem-vindo a sala de chat " + roomName + " -----" 
+				+ "\n----- Para enviar mensagens privadas digite '/p nomeDoUsuario mensagem' -----");
 		
 		this.add(usersLabel);
 		this.add(usersScrollPane);
@@ -157,10 +150,28 @@ public class ChatWindow extends JFrame {
 			Message msg = new Message();
 			
 			msg.username = username;
-			msg.content = message;
 			msg.roomName = roomName;
 			
-			chatArea.append("\n" + msg.username + ": " + msg.content);
+			if (message.startsWith("/p")) {
+				msg.isPrivate = true;
+				msg.pmSender = username;
+				
+				String[] sp = message.split(" ", 3);
+				
+				try {
+					msg.pmReceiver = sp[1];
+					msg.content = sp[2];
+				} catch (Exception e) {
+					msg.content = message;
+					msg.isPrivate = false;
+				}
+			}
+			else {
+				msg.content = message;
+				msg.isPrivate = false;	
+			}
+						
+			chatArea.append("\n" + username + ": " + message);
 			
 			space.write(msg, null, Lease.FOREVER);
 			
