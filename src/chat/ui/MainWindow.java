@@ -5,8 +5,10 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -45,6 +47,8 @@ public class MainWindow extends JFrame implements ActionListener {
 	
 	private JTextField usernameField;
 	
+	private JLabel errorLabel;
+	
 	public MainWindow() {		
 		initComponents();
 		
@@ -69,6 +73,8 @@ public class MainWindow extends JFrame implements ActionListener {
 		this.newChatRoomButton = new JButton();		
 		
 		this.roomButtonGroup = new ButtonGroup();
+		
+		this.errorLabel = new JLabel();
 	}
 
 	public void initSpace() {
@@ -90,7 +96,7 @@ public class MainWindow extends JFrame implements ActionListener {
 	
 	private void setUpGUI() {
 		this.setResizable(false);
-		this.setSize(400, 550);
+		this.setSize(400, 580);
 		this.setTitle("Chat");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setContentPane(new JLabel());	
@@ -152,20 +158,36 @@ public class MainWindow extends JFrame implements ActionListener {
 			usernameField.setBorder(new LineBorder(Color.RED, 1));
 
 			isValid = false;
-		}
-		else {
+		} else {
 			usernameField.setBorder(UIManager.getLookAndFeel().getDefaults().getBorder("TextField.border"));
 		}
-		
-		if (roomButtonGroup.getSelection().getActionCommand() != null) {
-			//TODO VALIDAÇÃO
-			
-		}
-		else {
+		 
+		if (!validateButtonGroup(roomButtonGroup)) {
 			isValid = false;
-		}
+			
+			errorLabel.setText("Você deve escolher uma sala antes de confirmar!");
+			errorLabel.setForeground(Color.RED);
+			errorLabel.setFont(new Font("Arial", Font.BOLD, 12));
+			errorLabel.setBounds(55, 455, 300, 60);
+			
+			this.add(errorLabel);	
+		} else {
+			errorLabel.setForeground(this.getBackground());
+		} 					
 
 		return isValid;
+	}
+	
+	private boolean validateButtonGroup(ButtonGroup buttonGroup) {
+		for (Enumeration<AbstractButton> buttons = buttonGroup.getElements(); buttons.hasMoreElements();) {
+			AbstractButton button = buttons.nextElement();
+
+			if (button.isSelected()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	private void setUpNewChatRoomButton() {
@@ -193,22 +215,28 @@ public class MainWindow extends JFrame implements ActionListener {
 					} 
 
 					if (!usernameField.getText().isEmpty() && !roomName.isEmpty()) {
-						MainWindow.this.removeAll();
-						MainWindow.this.setVisible(false);
-
-						new ChatWindow(usernameField.getText(), roomName, space);
-
-						ChatRoom chatRoom = new ChatRoom();
 						
-						chatRoom.name = roomName;
-						
-						try {
-							space.write(chatRoom, null, Lease.FOREVER);
-						} catch (Exception e) {
-							e.printStackTrace();
+						if (!verifyIfRoomExists(roomName)) {
+							MainWindow.this.removeAll();
+							MainWindow.this.setVisible(false);
+
+							new ChatWindow(usernameField.getText(), roomName, space);
+
+							ChatRoom chatRoom = new ChatRoom();
+							
+							chatRoom.name = roomName;
+							
+							try {
+								space.write(chatRoom, null, Lease.FOREVER);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							
+							break;
+						} else {
+							JOptionPane.showMessageDialog(null, "Já existe uma sala com o nome: " + roomName, "Erro",
+									JOptionPane.ERROR_MESSAGE);
 						}
-						
-						break;
 					}
 				}
 			}
@@ -216,6 +244,26 @@ public class MainWindow extends JFrame implements ActionListener {
 		
 		newChatRoomButton.addActionListener(al);
 	}	
+	
+	private boolean verifyIfRoomExists(String roomName) {
+		ChatRoom template = new ChatRoom();
+		template.name = roomName;
+		
+		ChatRoom chatRoom;
+		
+		try {
+			chatRoom = (ChatRoom) space.read(template, null, 1000);
+			
+			if (chatRoom != null) {
+				return true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
 	
 	private void setUpUpdateRoomButton() {
 		ActionListener al = new ActionListener() 
